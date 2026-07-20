@@ -1,0 +1,17 @@
+dataset_type: "savewhales"
+
+paths:
+  data_dir: "data"
+  images_dir: "data/images"
+  annotations_dir: "data"
+  output_dir: "outputs"
+
+datasets:
+  savewhales:
+    train_file: "train.json"
+    test_file: "test.json"
+  yolo:
+    labels_dir: "labels"
+
+model:
+  name: "sam2.1_b"
