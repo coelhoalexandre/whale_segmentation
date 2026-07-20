@@ -51,8 +51,9 @@ class SaveWhalesDataset(WhaleDataset):
     (polígono) por baleia, e imagens em uma pasta local.
     """
 
-    def __init__(self, images_dir: str, annotation_files: List[str]):
+    def __init__(self, images_dir: str, annotations_dir: str, annotation_files: List[str]):
         self.images_dir = images_dir
+        self.annotations_dir = annotations_dir
         self.annotation_files = annotation_files
 
     def load_samples(self) -> List[WhaleSample]:
@@ -92,8 +93,7 @@ class SaveWhalesDataset(WhaleDataset):
         """Lê todos os arquivos JSON Lines configurados (ex: train.json + test.json)."""
         records = []
         for filename in self.annotation_files:
-            path = os.path.join(self.images_dir, "..", filename)
-            path = os.path.normpath(path)
+            path = os.path.join(self.annotations_dir, filename)
             records.extend(self._load_jsonl(path))
         return records
 
@@ -135,10 +135,11 @@ def get_dataset(config: Config) -> WhaleDataset:
         ]
         return SaveWhalesDataset(
             images_dir=config.images_dir,
+            annotations_dir=config.annotations_dir,
             annotation_files=annotation_files,
         )
 
-    # TODO: quando o formato do YOLO estiver definido, adicionar aqui:
+    # Quando o formato do YOLO estiver definido, adicionar aqui:
     # if config.dataset_type == "yolo":
     #     return YoloDataset(...)
 
