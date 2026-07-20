@@ -53,6 +53,27 @@ def build_parser() -> argparse.ArgumentParser:
     )
     test_parser.set_defaults(func=commands.run_test)
 
+    # ---- comando: predict ----
+    predict_parser = subparsers.add_parser(
+        "predict",
+        help="Roda o modelo de segmentação sobre um dataset, sem comparar com ground truth.",
+    )
+    predict_parser.add_argument(
+        "--dataset-type",
+        type=str,
+        default=None,
+        help="Tipo de dataset a usar (ex: 'savewhales', 'yolo'). "
+             "Se omitido, usa o valor definido no YAML.",
+    )
+    predict_parser.add_argument(
+        "--model",
+        type=str,
+        default=None,
+        help="Nome/checkpoint do modelo de segmentação (ex: 'sam2.1_b'). "
+             "Se omitido, usa o valor definido no YAML.",
+    )
+    predict_parser.set_defaults(func=commands.run_predict)
+
     return parser
 
 

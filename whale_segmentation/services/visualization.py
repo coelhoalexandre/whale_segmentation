@@ -121,3 +121,47 @@ def save_summary_report(summary: dict, sample_evaluations: list, output_dir: str
         f.write(f"Total de baleias avaliadas: {summary['total_baleias']}\n")
 
     return output_path
+
+def save_prediction_panel(
+    image_path: str,
+    image_filename: str,
+    boxes_xyxy: List[List[float]],
+    predicted_masks: List[np.ndarray],
+    output_dir: str,
+) -> str:
+    """
+    Gera e salva um painel com 2 imagens lado a lado: original+boxes e
+    predição do modelo. Usado no fluxo de predição sem ground truth
+    (ex: imagens novas, sem anotação de referência).
+    """
+    os.makedirs(output_dir, exist_ok=True)
+
+    image_bgr = cv2.imread(image_path)
+    if image_bgr is None:
+        raise ValueError(f"Não foi possível abrir a imagem: {image_path}")
+    image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
+
+    fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+
+    axes[0].imshow(image_rgb)
+    axes[0].set_title("Imagem original + boxes")
+    for x1, y1, x2, y2 in boxes_xyxy:
+        axes[0].add_patch(
+            plt.Rectangle((x1, y1), x2 - x1, y2 - y1, fill=False, edgecolor="yellow", linewidth=2)
+        )
+    axes[0].axis("off")
+
+    pred_overlay = _overlay_masks(image_rgb, predicted_masks, color=(0, 255, 0))
+    axes[1].imshow(pred_overlay)
+    axes[1].set_title("Predição do modelo")
+    axes[1].axis("off")
+
+    fig.suptitle(image_filename, fontsize=14)
+    plt.tight_layout()
+
+    output_name = f"predicao_{os.path.splitext(image_filename)[0]}.png"
+    output_path = os.path.join(output_dir, output_name)
+    plt.savefig(output_path, dpi=130)
+    plt.close(fig)
+
+    return output_path
