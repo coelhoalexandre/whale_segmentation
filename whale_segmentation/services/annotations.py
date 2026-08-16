@@ -12,12 +12,12 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List
-
+import glob
 import numpy as np
 import cv2
 
 from whale_segmentation.config.loader import Config
-
+from whale_segmentation.services.detection import DetectionModel, get_detection_model, load_boxes
 
 @dataclass
 class WhaleSample:
@@ -42,8 +42,51 @@ class WhaleDataset(ABC):
     def load_samples(self) -> List[WhaleSample]:
         """Carrega e devolve todas as amostras disponíveis neste dataset."""
         raise NotImplementedError
+    
+def list_images_for_detection(config) -> List[str]:
+    """Lista as imagens do dataset 'laura' para a etapa de detecção."""
+    images_dir = config.dataset_settings["images_dir"]
+    pattern = os.path.join(images_dir, "*", "BC.Catalogue", "*.png")
+    return sorted(glob.glob(pattern))
 
+class LauraDataset(WhaleDataset):
+    """
+    Dataset com os frames de baleias fornecidos por Laura Aguillar.
+    Lê boxes já detectados e revisados, salvos em data/laura/boxes.json
+    (gerado previamente pelo comando 'detect' e movido manualmente para cá).
+    """
 
+    def __init__(self, images_dir: str, boxes_json_path: str):
+        self.images_dir = images_dir
+        self.boxes_json_path = boxes_json_path
+
+    def load_samples(self) -> List[WhaleSample]:
+        boxes_by_image = load_boxes(self.boxes_json_path)
+        samples = []
+
+        for filename, boxes in boxes_by_image.items():
+            if not boxes:
+                continue
+
+            image_path = self._find_image_path(filename)
+            samples.append(
+                WhaleSample(
+                    image_path=image_path,
+                    image_filename=filename,
+                    boxes_xyxy=boxes,
+                    ground_truth_masks=[],
+                )
+            )
+
+        return samples
+
+    def _find_image_path(self, filename: str) -> str:
+        pattern = os.path.join(self.images_dir, "*", "BC.Catalogue", filename)
+        matches = glob.glob(pattern)
+        if not matches:
+            raise FileNotFoundError(f"Imagem não encontrada: {filename}")
+        return matches[0]
+    
 class SaveWhalesDataset(WhaleDataset):
     """
     Dataset no formato do repositório cvl-umass/save-the-whales:
@@ -139,6 +182,12 @@ def get_dataset(config: Config) -> WhaleDataset:
             annotation_files=annotation_files,
         )
 
+    if config.dataset_type == "laura":
+        boxes_json_path = os.path.join(config.output_dir, "detect", "boxes.json")
+        return LauraDataset(
+            images_dir=config.dataset_settings["images_dir"],
+            boxes_json_path=boxes_json_path,
+        )
     # Quando o formato do YOLO estiver definido, adicionar aqui:
     # if config.dataset_type == "yolo":
     #     return YoloDataset(...)

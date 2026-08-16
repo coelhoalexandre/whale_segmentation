@@ -27,8 +27,11 @@ class Config:
     images_dir: str
     annotations_dir: str
     output_dir: str
+    models_dir: str
     dataset_settings: dict  # bloco específico do dataset_type escolhido (ex: train_file/test_file)
-
+    detection_checkpoint: str = None
+    detection_confidence: float = 0.5
+    detection_imgsz: int = 640
 
 def _read_yaml(config_path: str) -> dict:
     """Lê o arquivo YAML de configuração e devolve como dicionário."""
@@ -69,8 +72,11 @@ def load_config(config_path: str, overrides: dict) -> Config:
     model_name = _resolve(overrides.get("model"), raw.get("model", {}).get("name"))
 
     paths = raw.get("paths", {})
-    all_datasets = raw.get("datasets", {})
-
+    all_datasets = raw.get("datasets", {})    
+    detection_checkpoint = raw.get("detection", {}).get("checkpoint")
+    detection_confidence = raw.get("detection", {}).get("confidence_threshold", 0.5)
+    detection_imgsz = raw.get("detection", {}).get("imgsz", 640)
+    
     if dataset_type not in all_datasets:
         disponiveis = list(all_datasets.keys())
         raise ValueError(
@@ -85,5 +91,9 @@ def load_config(config_path: str, overrides: dict) -> Config:
         images_dir=paths.get("images_dir"),
         annotations_dir=paths.get("annotations_dir"),
         output_dir=paths.get("output_dir"),
+        models_dir=paths.get("models_dir"),
+        detection_checkpoint=detection_checkpoint,
+        detection_confidence=detection_confidence,
+        detection_imgsz=detection_imgsz,
         dataset_settings=all_datasets[dataset_type],
     )

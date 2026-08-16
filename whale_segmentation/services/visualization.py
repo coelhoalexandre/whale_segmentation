@@ -26,6 +26,25 @@ def _overlay_masks(image_rgb: np.ndarray, masks: List[np.ndarray], color: tuple)
         overlay[mask_bool] = (overlay[mask_bool] * 0.5 + color_array * 0.5).astype(np.uint8)
     return overlay
 
+def save_detection_panel(image_path, image_filename, boxes_xyxy, output_dir) -> str:
+    """Painel simples: imagem original com os boxes detectados, sem máscara."""
+    os.makedirs(output_dir, exist_ok=True)
+
+    image_bgr = cv2.imread(image_path)
+    image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.imshow(image_rgb)
+    for x1, y1, x2, y2 in boxes_xyxy:
+        ax.add_patch(plt.Rectangle((x1, y1), x2 - x1, y2 - y1, fill=False, edgecolor="yellow", linewidth=2))
+    ax.set_title(image_filename)
+    ax.axis("off")
+
+    output_path = os.path.join(output_dir, f"deteccao_{os.path.splitext(image_filename)[0]}.png")
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=130)
+    plt.close(fig)
+    return output_path
 
 def save_comparison_panel(
     image_path: str,

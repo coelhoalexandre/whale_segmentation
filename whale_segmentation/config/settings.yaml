@@ -4,6 +4,7 @@ paths:
   data_dir: "data"
   images_dir: "data/images"
   annotations_dir: "data"
+  models_dir: "models"
   output_dir: "outputs"
 
 datasets:
@@ -12,6 +13,13 @@ datasets:
     test_file: "test.json"
   yolo:
     labels_dir: "labels"
+  laura:
+    images_dir: "data/laura"
+
+detection:
+  checkpoint: "best.pt"
+  confidence_threshold: 0.5
+  imgsz: 640
 
 model:
   name: "sam2.1_b"

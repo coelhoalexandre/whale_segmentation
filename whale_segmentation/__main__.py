@@ -51,7 +51,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="Nome/checkpoint do modelo de segmentação (ex: 'sam2.1_b'). "
              "Se omitido, usa o valor definido no YAML.",
     )
+    test_parser.add_argument(
+        "--name", type=str, default=None,
+        help="Nome opcional para identificar esta execução (usado na pasta de saída).",
+    )
     test_parser.set_defaults(func=commands.run_test)
+
+    # ---- comando: detect ----
+    detect_parser = subparsers.add_parser(
+        "detect",
+        help="Roda o modelo de detecção (YOLO) e salva os boxes para revisão, sem segmentar.",
+    )
+    detect_parser.add_argument(
+        "--name", type=str, default=None,
+        help="Nome opcional para identificar esta execução (usado na pasta de saída).",
+    )
+    detect_parser.add_argument("--dataset-type", type=str, default=None, help="...")
+    detect_parser.set_defaults(func=commands.run_detect)
 
     # ---- comando: predict ----
     predict_parser = subparsers.add_parser(
@@ -71,6 +87,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Nome/checkpoint do modelo de segmentação (ex: 'sam2.1_b'). "
              "Se omitido, usa o valor definido no YAML.",
+    )
+    
+    predict_parser.add_argument(
+        "--name", type=str, default=None,
+        help="Nome opcional para identificar esta execução (usado na pasta de saída).",
     )
     predict_parser.set_defaults(func=commands.run_predict)
 
